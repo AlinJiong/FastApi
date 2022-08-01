@@ -122,7 +122,7 @@ class CityName(str, Enum):
 async def latest(city: CityName):
     if city == CityName.Shanghai:
         return {"city_name": city, "confirmed": 1492, "death": 7}
-    if city == CityName.Beijing:
+    if city.value == "Beijing China":
         return {"city_name": city, "confirmed": 971, "death": 9}
     return {"city_name": city, "latest": "unknown"}
 ```
@@ -189,4 +189,45 @@ async def read_items(
     if q:
         results.update({"q": q})
     return results
+```
+
+## alias 别名参数
+
+```python
+# http://127.0.0.1:8000/items/?item-query=foobaritems
+
+from typing import Union
+
+from fastapi import FastAPI, Query
+
+app = FastAPI()
+
+
+@app.get("/items/")
+async def read_items(q: Union[str, None] = Query(default=None, alias="item-query")):
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if q:
+        results.update({"q": q})
+    return results
+```
+
+## 路径转换器
+
+/files/{file_path:path}
+
+`path` 说明该参数应匹配任意的 _路径_ 。
+
+你可能会需要参数包含 `/home/johndoe/myfile.txt`，以斜杠（`/`）开头。
+
+在这种情况下，URL 将会是 `/files//home/johndoe/myfile.txt`，在 `files` 和 `home` 之间有一个双斜杠（`//`）。
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/files/{file_path:path}")
+async def read_file(file_path: str):
+    return {"file_path": file_path}
 ```
